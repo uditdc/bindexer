@@ -19,7 +19,7 @@ A lightweight Ethereum event indexer built with Bun and TypeScript. This tool mo
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/bindexer.git
+git clone https://github.com/uditdc/bindexer.git
 cd bindexer
 
 # Install dependencies
@@ -88,9 +88,9 @@ Response:
     "contract": "0x1234567890123456789012345678901234567890",
     "blockNumber": 123456,
     "transactionHash": "0xabcdef...",
-    "from": "0x1111111111111111111111111111111111111111",
-    "to": "0x2222222222222222222222222222222222222222",
-    "value": "1000000000000000000"
+    "param_0_address": "0x1111111111111111111111111111111111111111",
+    "param_1_address": "0x2222222222222222222222222222222222222222",
+    "param_2_uint256": "1000000000000000000"
   }
   // ...
 ]
