@@ -4,12 +4,18 @@
   "type": "module",
   "scripts": {
     "build": "tsc",
-    "dev": "bun run src/index.ts"
+    "dev": "bun run src/index.ts",
+    "format": "prettier --write ."
   },
   "devDependencies": {
     "@types/bun": "latest"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "biome": "^0.3.3",
+    "prettier": "^3.5.3",
+    "viem": "^2.29.3"
   }
 }
