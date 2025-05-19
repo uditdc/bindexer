@@ -1,0 +1,41 @@
+name: Build Binary
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  build:
+    name: Build Binary
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        include:
+          - os: ubuntu-latest
+            binary_ext: ""
+          - os: macos-latest
+            binary_ext: ""
+          - os: windows-latest
+            binary_ext: ".exe"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Build binary
+        run: bun build ./src/index.ts --compile --outfile app${{ matrix.binary_ext }}
+
+      - name: Upload binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-${{ matrix.os }}
+          path: app${{ matrix.binary_ext }}
