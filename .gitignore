@@ -176,3 +176,6 @@ dist
 
 # DB Cache
 *.sqlite
+
+# Local MD files
+*.local.md
