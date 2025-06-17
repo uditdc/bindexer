@@ -16,11 +16,11 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
         include:
           - os: ubuntu-latest
-            binary_ext: ''
+            binary_ext: '-linux'
           - os: macos-latest
-            binary_ext: ''
+            binary_ext: '-macos'
           - os: windows-latest
-            binary_ext: '.exe'
+            binary_ext: '-windows.exe'
 
     steps:
       - name: Checkout code
