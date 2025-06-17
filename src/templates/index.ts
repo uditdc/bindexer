@@ -123,60 +123,6 @@ export const TEMPLATES: Record<string, ProjectTemplate> = {
     ],
   },
 
-  nft: {
-    name: 'NFT Collection',
-    description: 'Monitor NFT transfers and marketplace events',
-    config: {
-      version: '1.0',
-      project: 'nft-indexer',
-      environment: 'development',
-      network: 'mainnet',
-      contracts: [
-        {
-          address: '0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D', // Bored Ape Yacht Club
-          name: 'BAYC',
-          events: ['Transfer', 'Approval', 'ApprovalForAll'],
-        },
-      ],
-      events: [
-        {
-          signature: 'Transfer(address indexed from, address indexed to, uint256 indexed tokenId)',
-          name: 'Transfer',
-        },
-        {
-          signature:
-            'Approval(address indexed owner, address indexed approved, uint256 indexed tokenId)',
-          name: 'Approval',
-        },
-        {
-          signature:
-            'ApprovalForAll(address indexed owner, address indexed operator, bool approved)',
-          name: 'ApprovalForAll',
-        },
-      ],
-      startBlock: 18000000,
-      api: {
-        enabled: true,
-        port: 3000,
-        cors: true,
-      },
-      database: {
-        path: 'nft-logs.sqlite',
-        walMode: true,
-      },
-      monitoring: {
-        progressTracking: true,
-        logLevel: 'info',
-      },
-    },
-    instructions: [
-      'Replace the contract address with your target NFT collection',
-      'Consider adding marketplace contract events (OpenSea, LooksRare, etc.)',
-      'NFT transfers can be high volume - monitor database size',
-      'Add metadata enrichment for better analytics',
-    ],
-  },
-
   defi: {
     name: 'DeFi Protocol',
     description: 'Monitor DeFi protocol events (lending, borrowing, liquidations)',
