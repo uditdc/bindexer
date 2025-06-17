@@ -46,13 +46,13 @@ bun run src/index.ts -c 0x1234567890123456789012345678901234567890 -e "Transfer(
 
 #### Available Options
 
-| Flag | Long Form     | Description                                      | Required |
-|------|---------------|--------------------------------------------------|----------|
-| `-c` | `--contract`  | Contract address to monitor (can be used multiple times) | Yes |
-| `-e` | `--event`     | Event signature to listen for (can be used multiple times) | Yes |
-| `-p` | `--port`      | Port to run the API server on (default: 3000)    | No       |
-| `-a` | `--api`       | Enable the API server                            | No       |
-| `-f` | `--file`      | Path to configuration file                       | No       |
+| Flag | Long Form    | Description                                                | Required |
+| ---- | ------------ | ---------------------------------------------------------- | -------- |
+| `-c` | `--contract` | Contract address to monitor (can be used multiple times)   | Yes      |
+| `-e` | `--event`    | Event signature to listen for (can be used multiple times) | Yes      |
+| `-p` | `--port`     | Port to run the API server on (default: 3000)              | No       |
+| `-a` | `--api`      | Enable the API server                                      | No       |
+| `-f` | `--file`     | Path to configuration file                                 | No       |
 
 ### Config File
 
@@ -80,6 +80,7 @@ curl -X GET http://localhost:3000/api/events
 ```
 
 Response:
+
 ```json
 [
   {
@@ -113,6 +114,7 @@ curl -X GET http://localhost:3000/api/event-types
 ```
 
 Response:
+
 ```json
 ["Transfer", "Approval", "Mint"]
 ```

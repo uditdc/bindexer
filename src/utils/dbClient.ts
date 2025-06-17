@@ -1,10 +1,11 @@
 import { Database } from 'bun:sqlite'
 import type { parseAbiItem } from 'viem'
+import { logger } from './logger'
 
 // Create a SQLite database using Bun's built-in SQLite
 const db = new Database('logs.sqlite')
 
-// Function to save logs to the database
+// Function to save logs to the database with duplicate prevention
 export function saveLogToDatabase(log: any, eventName: string) {
   // Now save to the event-specific table
   const tableName = `event_${eventName.toLowerCase()}`
@@ -17,6 +18,21 @@ export function saveLogToDatabase(log: any, eventName: string) {
       .get(tableName)
 
     if (tableExists) {
+      // Check for duplicate using transaction_hash and log_index
+      const existingLog = db
+        .query(`SELECT id FROM ${tableName} WHERE transaction_hash = ? AND log_index = ?`)
+        .get(log.transactionHash, log.logIndex || 0)
+
+      if (existingLog) {
+        // Track duplicate statistics instead of logging each one
+        logger.trackStat('current_batch', 'duplicate')
+        logger.throttled(
+          'duplicate_logs',
+          `Skipping duplicate events (last: ${log.transactionHash?.slice(0, 10)}...)`,
+          'debug'
+        )
+        return // Skip duplicate
+      }
       // Get all columns for this table
       const columnsResult = db.query(`PRAGMA table_info(${tableName})`).all()
       const columns = columnsResult.map((col: any) => col.name)
@@ -59,11 +75,18 @@ export function saveLogToDatabase(log: any, eventName: string) {
       }
 
       stmt.run(...values)
-      console.log(`Saved event data to ${tableName} table`)
+
+      // Track successful processing
+      logger.trackStat('current_batch', 'processed')
+      logger.debug(`Saved event: ${log.transactionHash?.slice(0, 10)}... (${eventName})`)
     }
   } catch (error) {
-    console.error(
-      `Failed to save to event-specific table: ${error instanceof Error ? error.message : 'Unknown error'}`
+    // Track error statistics
+    logger.trackStat('current_batch', 'error')
+    logger.throttled(
+      'db_save_errors',
+      `Failed to save events to database: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      'error'
     )
     // Continue execution even if event-specific table insert fails
   }
@@ -120,7 +143,6 @@ export function getLogsFromDatabase(
       .get(tableName)
 
     if (!tableExists) {
-      console.error(`Table ${tableName} does not exist`)
       return []
     }
 
@@ -214,22 +236,31 @@ export function generateDatabaseSchemas(abis: ReturnType<typeof parseAbiItem>[])
     createTableSql += `
 );`
 
-    // Add index on contract_address for faster queries
+    // Add indexes for better performance and duplicate prevention
     createTableSql += `\nCREATE INDEX IF NOT EXISTS idx_${tableName}_contract ON ${tableName}(contract_address);`
+    createTableSql += `\nCREATE INDEX IF NOT EXISTS idx_${tableName}_block ON ${tableName}(block_number);`
+    createTableSql += `\nCREATE UNIQUE INDEX IF NOT EXISTS idx_${tableName}_unique ON ${tableName}(transaction_hash, log_index);`
 
     tableSchemas.push(createTableSql)
   }
 
   // Execute all the SQL statements to create tables
+  let createdCount = 0
   for (const schema of tableSchemas) {
     try {
       db.exec(schema)
-      console.log(`Created schema: ${schema.split('\n')[0]}`)
+      createdCount++
+      const tableName = schema.match(/CREATE TABLE IF NOT EXISTS (\w+)/)?.[1]
+      logger.debug(`Created table: ${tableName}`)
     } catch (error) {
-      console.error(
+      logger.error(
         `Failed to create schema: ${error instanceof Error ? error.message : 'Unknown error'}`
       )
     }
+  }
+
+  if (createdCount > 0) {
+    logger.info(`📋 Database schema ready: ${createdCount} table(s) created/verified`)
   }
 
   return tableSchemas
