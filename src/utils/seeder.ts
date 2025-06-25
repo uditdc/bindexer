@@ -1,10 +1,5 @@
 import { logger } from './logger'
 
-// Base block defaults for different networks
-const baseBlockMainnet = 17000000n
-const baseBlockHolesky = 1159609n
-const baseBlockSepolia = 8080000n
-
 /**
  * Helper function to loop through blocks in batches with enhanced progress tracking
  */
