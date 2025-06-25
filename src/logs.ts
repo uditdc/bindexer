@@ -66,7 +66,6 @@ export async function setupEventWatchers(contractAddresses: string[], abis: AbiE
     )
     return unwatchFunctions
   } catch (error) {
-    logger.logPhase('Real-time Event Monitoring', 'error')
     logger.error(
       `Failed to set up event subscriptions: ${error instanceof Error ? error.message : 'Unknown error'}`
     )
