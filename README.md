@@ -1,14 +1,17 @@
 # Bindexer
 
-A lightweight Ethereum event indexer built with Bun and TypeScript. This tool monitors blockchain events from specified contracts and stores them in a local SQLite database for easy querying.
+A powerful Ethereum event indexer built with Bun and TypeScript. Bindexer monitors blockchain events from multiple contracts across different networks and stores them in SQLite for efficient querying and analysis.
 
 ## 🚀 Features
 
-- Monitor multiple Ethereum contracts for specific events
-- Automatically generate database schemas based on event ABIs
-- Query indexed events via a REST API
-- Configure via command line arguments or JSON config file
-- Built with Bun for fast performance
+- **Multi-network support** - Mainnet, Sepolia, Polygon, Arbitrum, and more
+- **Advanced configuration** - Profiles, templates, environment variables
+- **Flexible CLI** - Initialize projects, validate configs, generate templates
+- **REST API** - Query indexed events with CORS, rate limiting, and authentication
+- **High performance** - Built with Bun and optimized batch processing
+- **Smart retries** - Configurable retry strategies for reliability
+- **Historical sync** - Process events from specified starting blocks
+- **Template system** - Quick setup for popular contract types (ERC20, Uniswap, etc.)
 
 ## 📋 Prerequisites
 
@@ -26,105 +29,211 @@ cd bindexer
 bun install
 ```
 
-## 🖥️ Usage
+## 🚀 Quick Start
 
-### Basic Usage
-
-Run the indexer with a configuration file:
+### Initialize a new project
 
 ```bash
-bun run src/index.ts -f config.json
+# Create a new project with default configuration
+bun run src/index.ts --init
+
+# Create project with specific template
+bun run src/index.ts --init --template=erc20
+bun run src/index.ts --init --template=uniswap-v3
 ```
 
-### Command Line Arguments
-
-Run the indexer with command line arguments:
+### Run with configuration file
 
 ```bash
-bun run src/index.ts -c 0x1234567890123456789012345678901234567890 -e "Transfer(address,address,uint256)" -p 3000 -a
+# Use default config (bindexer.config.json)
+bun run src/index.ts
+
+# Use specific config file
+bun run src/index.ts --config=my-project.json
+
+# Use environment profile
+bun run src/index.ts --profile=production
 ```
 
-#### Available Options
+### Run with CLI arguments
 
-| Flag | Long Form    | Description                                                | Required |
-| ---- | ------------ | ---------------------------------------------------------- | -------- |
-| `-c` | `--contract` | Contract address to monitor (can be used multiple times)   | Yes      |
-| `-e` | `--event`    | Event signature to listen for (can be used multiple times) | Yes      |
-| `-p` | `--port`     | Port to run the API server on (default: 3000)              | No       |
-| `-a` | `--api`      | Enable the API server                                      | No       |
-| `-f` | `--file`     | Path to configuration file                                 | No       |
+```bash
+bun run src/index.ts \
+  --contract=0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48 \
+  --event="Transfer(address indexed,address indexed,uint256)" \
+  --network=mainnet \
+  --api --port=3000
+```
 
-### Config File
+## 🖥️ CLI Reference
 
-The config file is a JSON file that specifies the contracts to monitor, the events to listen for, and the port to run the API server on:
+### Commands
+
+| Command | Description |
+| ------- | ----------- |
+| `(default)` | Start the event indexer |
+| `--init [--template=<name>]` | Initialize new project with config file |
+| `--generate-config` | Generate configuration to stdout |
+| `--validate` | Validate existing configuration |
+| `--help` | Show help message |
+| `--version` | Show version information |
+
+### Core Options
+
+| Flag | Long Form | Description |
+| ---- | --------- | ----------- |
+| `-c` | `--contract <address>` | Contract address to monitor (multiple allowed) |
+| `-e` | `--event <signature>` | Event signature to monitor (multiple allowed) |
+| `-n` | `--network <name>` | Network: mainnet, sepolia, polygon, arbitrum |
+| `-s` | `--startBlock <number>` | Starting block for historical sync |
+
+### Configuration Options
+
+| Flag | Long Form | Description |
+| ---- | --------- | ----------- |
+| `-f` | `--config <path>` | Path to config file |
+| `--profile <name>` | Use specific config profile/environment |
+| `-t` | `--template <name>` | Template for --init command |
+
+### API Options
+
+| Flag | Long Form | Description |
+| ---- | --------- | ----------- |
+| `-a` | `--api` | Enable API server |
+| `-p` | `--port <number>` | API server port (default: 3000) |
+| `--host <address>` | API server host (default: localhost) |
+
+### Database & Monitoring
+
+| Flag | Long Form | Description |
+| ---- | --------- | ----------- |
+| `-d` | `--database <path>` | Database file path (default: logs.sqlite) |
+| `--logLevel <level>` | Log level: debug, info, warn, error |
+| `-v` | `--verbose` | Enable verbose logging (debug level) |
+| `-q` | `--quiet` | Enable quiet mode (error level only) |
+
+## ⚙️ Configuration
+
+### Configuration File Structure
 
 ```json
 {
-  "contracts": ["0x1234567890123456789012345678901234567890"],
-  "events": ["Transfer(address,address,uint256)"],
-  "port": 3000,
-  "api": true
+  "version": "1.0",
+  "project": "my-indexer-project",
+  "environment": "development",
+  
+  "network": {
+    "name": "mainnet",
+    "chainId": 1,
+    "rpcUrl": "https://eth.llamarpc.com"
+  },
+  
+  "contracts": [
+    {
+      "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+      "name": "USDC",
+      "startBlock": 20000000
+    }
+  ],
+  
+  "events": [
+    {
+      "signature": "Transfer(address indexed,address indexed,uint256)",
+      "name": "Transfer"
+    }
+  ],
+  
+  "api": {
+    "enabled": true,
+    "port": 3000,
+    "host": "localhost",
+    "cors": true,
+    "rateLimit": {
+      "windowMs": 60000,
+      "max": 100
+    }
+  },
+  
+  "database": {
+    "path": "logs.sqlite",
+    "walMode": true,
+    "queryLogging": false
+  },
+  
+  "monitoring": {
+    "logLevel": "info",
+    "progressTracking": true,
+    "performanceMetrics": true
+  },
+  
+  "profiles": {
+    "production": {
+      "environment": "production",
+      "network": "mainnet",
+      "monitoring": {
+        "logLevel": "warn"
+      }
+    }
+  }
 }
 ```
 
+### Environment Variables
+
+| Variable | Description |
+| -------- | ----------- |
+| `BINDEXER_NETWORK` | Default network |
+| `BINDEXER_RPC_URL` | RPC endpoint URL |
+| `BINDEXER_START_BLOCK` | Starting block number |
+| `BINDEXER_API_PORT` | API server port |
+| `BINDEXER_DATABASE_PATH` | Database file path |
+| `BINDEXER_LOG_LEVEL` | Logging level |
+| `RPC_URL` | RPC endpoint (alias) |
+
+### Supported Networks
+
+| Network | Chain ID | Default RPC |
+| ------- | -------- | ----------- |
+| `mainnet` | 1 | https://eth.llamarpc.com |
+| `sepolia` | 11155111 | https://ethereum-sepolia-rpc.publicnode.com |
+| `holesky` | 17000 | https://ethereum-holesky-rpc.publicnode.com |
+| `polygon` | 137 | https://polygon-rpc.com |
+| `arbitrum` | 42161 | https://arb1.arbitrum.io/rpc |
+
 ## 🌐 API Endpoints
 
-When the API server is enabled, the following endpoints are available:
+When the API server is enabled:
 
-### Get Events
-
-Retrieve all indexed events from the database:
-
+### Get All Events
 ```bash
 curl -X GET http://localhost:3000/api/events
 ```
 
-Response:
-
-```json
-[
-  {
-    "id": 1,
-    "eventType": "Transfer",
-    "contract": "0x1234567890123456789012345678901234567890",
-    "blockNumber": 123456,
-    "transactionHash": "0xabcdef...",
-    "param_0_address": "0x1111111111111111111111111111111111111111",
-    "param_1_address": "0x2222222222222222222222222222222222222222",
-    "param_2_uint256": "1000000000000000000"
-  }
-  // ...
-]
-```
-
 ### Get Events by Type
-
-Retrieve events of a specific type:
-
 ```bash
 curl -X GET http://localhost:3000/api/events/Transfer
 ```
 
 ### Get Event Types
-
-Get all available event types:
-
 ```bash
 curl -X GET http://localhost:3000/api/event-types
 ```
 
-Response:
-
+### Response Format
 ```json
-["Transfer", "Approval", "Mint"]
-```
-
-## 🧪 Testing
-
-Run the test suite:
-
-```bash
-bun test
+[
+  {
+    "id": 1,
+    "eventType": "Transfer",
+    "contract": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+    "blockNumber": 123456,
+    "transactionHash": "0xabcdef...",
+    "param_0_address": "0x1111111111111111111111111111111111111111",
+    "param_1_address": "0x2222222222222222222222222222222222222222",
+    "param_2_uint256": "1000000000000000000",
+    "timestamp": "2024-01-01T12:00:00Z"
+  }
+]
 ```
 
 ## 🛠️ Development
@@ -134,23 +243,47 @@ bun test
 ```
 bindexer/
 ├── src/
-│   ├── index.ts         # Entry point
-│   ├── config.ts        # Configuration handling
-│   ├── indexer.ts       # Event indexing logic
-│   ├── db.ts            # Database operations
-│   └── api.ts           # API server
-├── tests/               # Test files
-├── README.md            # This file
-└── package.json         # Project dependencies
+│   ├── index.ts              # Main entry point
+│   ├── cli.ts                # CLI argument parsing
+│   ├── server.ts             # API server
+│   ├── logs.ts               # Event processing
+│   ├── types/
+│   │   └── config.ts         # Configuration types
+│   ├── utils/
+│   │   ├── configManager.ts  # Configuration management
+│   │   ├── dbClient.ts       # Database operations
+│   │   ├── logger.ts         # Logging utilities
+│   │   ├── seeder.ts         # Database seeding
+│   │   └── viemClient.ts     # Ethereum client
+│   └── templates/            # Project templates
+├── bindexer.config.json      # Configuration file
+├── package.json              # Dependencies
+└── tsconfig.json             # TypeScript config
 ```
 
-### Local Development
-
-To run the indexer in development mode:
+### Development Commands
 
 ```bash
+# Run in development mode
 bun run dev
+
+# Format code
+bun run format
+
+# Build TypeScript
+bun run build
+
+# Validate configuration
+bun run src/index.ts --validate
 ```
+
+### Creating Templates
+
+Templates are located in `src/templates/` and help users quickly set up common configurations:
+
+- `erc20` - Standard ERC20 token monitoring
+- `uniswap-v3` - Uniswap V3 pool events
+- `defi` - Common DeFi protocol events
 
 ## 📄 License
 
@@ -158,5 +291,13 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Contributions are welcome! Please:
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Run `bun run format` to format code
+6. Submit a pull request
+
 For major changes, please open an issue first to discuss what you would like to change.
