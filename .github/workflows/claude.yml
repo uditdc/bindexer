@@ -30,6 +30,6 @@ jobs:
           fetch-depth: 1
 
       - name: Run Claude PR Action
-        uses: anthropics/claude-code-action@beta
+        uses: anthropics/claude-code-action@896b585368e0e90dec61a626771c208bf380937e
         with:
           timeout_minutes: "60"
