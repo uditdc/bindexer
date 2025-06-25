@@ -291,13 +291,5 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please:
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Run `bun run format` to format code
-6. Submit a pull request
-
+Contributions are welcome! Please feel free to submit a Pull Request.
 For major changes, please open an issue first to discuss what you would like to change.
